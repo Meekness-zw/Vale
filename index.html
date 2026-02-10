@@ -3,7 +3,9 @@
   <head>
     <meta charset="UTF-8" />
     <title>Be My Valentine?</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="mobile-web-app-capable" content="yes" />
     <style>
       :root {
         --bg: #fff0f6;
@@ -372,262 +374,238 @@
 
       <p class="bottom-note base-note">Made with way too much sweetness ✨</p>
     </main>
+    <noscript>
+      <p style="text-align:center;padding:1rem;color:#c9184a;">Enable JavaScript to see the full experience — or just say Yes! 💕</p>
+    </noscript>
 
     <script>
-      const noBtn = document.getElementById("noBtn");
-      const yesBtn = document.getElementById("yesBtn");
-      const buttonsRow = document.getElementById("buttonsRow");
-      const celebration = document.getElementById("celebration");
-      const card = document.querySelector(".card");
-      const celebrationText = document.getElementById("celebrationText");
-      const celebrationGif = document.getElementById("celebrationGif");
-      const fireworksCanvas = document.getElementById("fireworksCanvas");
-      const fwCtx = fireworksCanvas ? fireworksCanvas.getContext("2d") : null;
-      const isTouchDevice =
-        typeof window !== "undefined" &&
-        window.matchMedia &&
-        window.matchMedia("(pointer: coarse)").matches;
-
-      function loadCelebrationGif() {
-        if (!celebrationGif || celebrationGif.src) return;
-        const dataSrc = celebrationGif.getAttribute("data-src");
-        if (!dataSrc) return;
-        celebrationGif.onerror = function () {
-          celebrationGif.style.display = "none";
-          if (celebration) {
-            const fallback = document.createElement("p");
-            fallback.className = "celebration-gif";
-            fallback.style.fontSize = "4rem";
-            fallback.textContent = "💃❤️🎉";
-            fallback.setAttribute("aria-hidden", "true");
-            celebration.insertBefore(fallback, celebration.firstChild);
+      (function () {
+        "use strict";
+        function runWhenReady(fn) {
+          if (document.readyState === "loading") {
+            document.addEventListener("DOMContentLoaded", fn);
+          } else {
+            fn();
           }
-        };
-        celebrationGif.src = dataSrc;
-      }
-
-      function resizeCanvas() {
-        if (!fireworksCanvas || !card) return;
-        const rect = card.getBoundingClientRect();
-        fireworksCanvas.width = rect.width;
-        fireworksCanvas.height = rect.height;
-      }
-      if (fireworksCanvas && fwCtx) {
-        resizeCanvas();
-        window.addEventListener("resize", resizeCanvas);
-      }
-
-      let fireworks = [];
-      let fwAnimating = false;
-      let fireworkSpawner = null;
-      let heartSpawner = null;
-
-      let moveCount = 0;
-      let mobileNoClicks = 0;
-
-      function randomPosition() {
-        if (!buttonsRow) return { x: 0, y: 0 };
-        const maxOffsetX = Math.max(20, buttonsRow.clientWidth / 2 - 40);
-        const maxOffsetY = 55;
-        const angle = Math.random() * Math.PI * 2;
-        const radius = 20 + Math.random() * Math.min(maxOffsetX, maxOffsetY);
-        return {
-          x: Math.cos(angle) * radius,
-          y: Math.sin(angle) * radius,
-        };
-      }
-
-      function dodgeNoButton() {
-        if (!noBtn) return;
-        moveCount++;
-        const { x, y } = randomPosition();
-
-        noBtn.style.position = "relative";
-        noBtn.style.transform = `translate(${x}px, ${y}px)`;
-
-        // Subtly encourage "Yes" after a few tries
-        if (moveCount > 3) {
-          yesBtn.style.transform = "translateY(-2px) scale(1.06)";
-          yesBtn.style.boxShadow = "0 18px 36px rgba(55, 178, 77, 0.65)";
-        }
-      }
-
-      if (isTouchDevice) {
-        // On touch devices (phones/tablets): tapping "No" shrinks it and grows "Yes"
-        noBtn.addEventListener("click", (e) => {
-          e.preventDefault();
-          handleMobileNoTap();
-        });
-      } else {
-        // Desktop / larger screens – make it nearly impossible to click "No"
-        noBtn.addEventListener("mouseenter", dodgeNoButton);
-        noBtn.addEventListener("mousemove", dodgeNoButton);
-        noBtn.addEventListener("focus", dodgeNoButton);
-        noBtn.addEventListener("click", (e) => {
-          e.preventDefault();
-          dodgeNoButton();
-        });
-      }
-
-      function handleMobileNoTap() {
-        if (noBtn.style.display === "none") return;
-
-        mobileNoClicks++;
-
-        const messages = [
-          "Are you sure?",
-          "Really sure?",
-          "Think again...",
-          "Last chance 😏",
-        ];
-
-        const msgIndex = Math.min(mobileNoClicks - 1, messages.length - 1);
-        noBtn.textContent = messages[msgIndex];
-
-        // Shrink "No" a bit more on every tap
-        const shrinkStep = 0.18;
-        const scaleNo = Math.max(0, 1 - mobileNoClicks * shrinkStep);
-        const opacityNo = Math.max(0, 1 - mobileNoClicks * shrinkStep);
-        noBtn.style.transform = `scale(${scaleNo})`;
-        noBtn.style.opacity = String(opacityNo);
-
-        // Grow "Yes" as "No" shrinks
-        const growStep = 0.12;
-        const scaleYes = 1 + mobileNoClicks * growStep;
-        yesBtn.style.transform = `scale(${scaleYes})`;
-
-        // When "No" is tiny enough, hide it completely
-        if (scaleNo <= 0.1) {
-          noBtn.style.display = "none";
-          noBtn.disabled = true;
-        }
-      }
-
-      yesBtn.addEventListener("click", () => {
-        loadCelebrationGif();
-        card.classList.add("celebrating");
-        celebration.style.pointerEvents = "auto";
-        // "I knew it chakanyura" line animates via CSS
-
-        yesBtn.disabled = true;
-        noBtn.disabled = true;
-        yesBtn.style.opacity = "0.8";
-        noBtn.style.opacity = "0.4";
-
-        startFireworkShow();
-        startHearts();
-      });
-
-      function startFireworkShow() {
-        if (!fireworksCanvas || !fwCtx) return;
-
-        // start animation loop if not already running
-        if (!fwAnimating) {
-          fwAnimating = true;
-          requestAnimationFrame(updateFireworks);
         }
 
-        // spawn initial burst
-        launchFireworks();
+        runWhenReady(function init() {
+          try {
+            var noBtn = document.getElementById("noBtn");
+            var yesBtn = document.getElementById("yesBtn");
+            var buttonsRow = document.getElementById("buttonsRow");
+            var celebration = document.getElementById("celebration");
+            var card = document.querySelector(".card");
+            var celebrationText = document.getElementById("celebrationText");
+            var celebrationGif = document.getElementById("celebrationGif");
+            var fireworksCanvas = document.getElementById("fireworksCanvas");
+            var fwCtx = null;
+            try {
+              fwCtx = fireworksCanvas ? fireworksCanvas.getContext("2d") : null;
+            } catch (e) {}
+            var isTouchDevice = false;
+            try {
+              isTouchDevice = !!(window.matchMedia && window.matchMedia("(pointer: coarse)").matches);
+            } catch (e) {
+              isTouchDevice = "ontouchstart" in window || navigator.maxTouchPoints > 0;
+            }
+            if (!isTouchDevice && "ontouchstart" in window) isTouchDevice = true;
 
-        // then keep spawning new bursts forever
-        if (!fireworkSpawner) {
-          fireworkSpawner = setInterval(() => {
-            launchFireworks();
-          }, 900);
-        }
-      }
+            function loadCelebrationGif() {
+              if (!celebrationGif || celebrationGif.src) return;
+              var dataSrc = celebrationGif.getAttribute("data-src");
+              if (!dataSrc) return;
+              celebrationGif.onerror = function () {
+                celebrationGif.style.display = "none";
+                if (celebration) {
+                  var fallback = document.createElement("p");
+                  fallback.className = "celebration-gif";
+                  fallback.style.fontSize = "4rem";
+                  fallback.textContent = "💃❤️🎉";
+                  fallback.setAttribute("aria-hidden", "true");
+                  celebration.insertBefore(fallback, celebration.firstChild);
+                }
+              };
+              celebrationGif.src = dataSrc;
+            }
 
-      function startHearts() {
-        if (!card) return;
-        const hearts = ["💖", "💘", "❤️", "💕", "💝"];
+            function resizeCanvas() {
+              if (!fireworksCanvas || !card) return;
+              var rect = card.getBoundingClientRect();
+              fireworksCanvas.width = rect.width;
+              fireworksCanvas.height = rect.height;
+            }
+            if (fireworksCanvas && fwCtx) {
+              resizeCanvas();
+              window.addEventListener("resize", resizeCanvas);
+            }
 
-        // spawn a heart immediately
-        spawnHeart();
+            var fireworks = [];
+            var fwAnimating = false;
+            var fireworkSpawner = null;
+            var heartSpawner = null;
+            var moveCount = 0;
+            var mobileNoClicks = 0;
 
-        if (!heartSpawner) {
-          heartSpawner = setInterval(spawnHeart, 850);
-        }
+            function randomPosition() {
+              if (!buttonsRow) return { x: 0, y: 0 };
+              var maxOffsetX = Math.max(20, buttonsRow.clientWidth / 2 - 40);
+              var maxOffsetY = 55;
+              var angle = Math.random() * Math.PI * 2;
+              var radius = 20 + Math.random() * Math.min(maxOffsetX, maxOffsetY);
+              return {
+                x: Math.cos(angle) * radius,
+                y: Math.sin(angle) * radius,
+              };
+            }
 
-        function spawnHeart() {
-          const span = document.createElement("span");
-          span.className = "floating-heart";
-          span.textContent = hearts[Math.floor(Math.random() * hearts.length)];
+            function dodgeNoButton() {
+              if (!noBtn) return;
+              moveCount++;
+              var pos = randomPosition();
+              noBtn.style.position = "relative";
+              noBtn.style.transform = "translate(" + pos.x + "px, " + pos.y + "px)";
+              if (moveCount > 3 && yesBtn) {
+                yesBtn.style.transform = "translateY(-2px) scale(1.06)";
+                yesBtn.style.boxShadow = "0 18px 36px rgba(55, 178, 77, 0.65)";
+              }
+            }
 
-          const cardWidth = card.clientWidth || 320;
-          const offset =
-            (cardWidth * 0.2) / 2 + Math.random() * (cardWidth * 0.6);
-          span.style.left = `${offset}px`;
+            if (noBtn) {
+              if (isTouchDevice) {
+                noBtn.addEventListener("click", function (e) {
+                  e.preventDefault();
+                  handleMobileNoTap();
+                });
+              } else {
+                noBtn.addEventListener("mouseenter", dodgeNoButton);
+                noBtn.addEventListener("mousemove", dodgeNoButton);
+                noBtn.addEventListener("focus", dodgeNoButton);
+                noBtn.addEventListener("click", function (e) {
+                  e.preventDefault();
+                  dodgeNoButton();
+                });
+              }
+            }
 
-          span.style.fontSize = 18 + Math.random() * 10 + "px";
+            function handleMobileNoTap() {
+              if (!noBtn || noBtn.style.display === "none") return;
+              mobileNoClicks++;
+              var messages = ["Are you sure?", "Really sure?", "Think again...", "Last chance 😏"];
+              var msgIndex = Math.min(mobileNoClicks - 1, messages.length - 1);
+              noBtn.textContent = messages[msgIndex];
+              var shrinkStep = 0.18;
+              var scaleNo = Math.max(0, 1 - mobileNoClicks * shrinkStep);
+              var opacityNo = Math.max(0, 1 - mobileNoClicks * shrinkStep);
+              noBtn.style.transform = "scale(" + scaleNo + ")";
+              noBtn.style.opacity = String(opacityNo);
+              var growStep = 0.12;
+              var scaleYes = 1 + mobileNoClicks * growStep;
+              if (yesBtn) yesBtn.style.transform = "scale(" + scaleYes + ")";
+              if (scaleNo <= 0.1) {
+                noBtn.style.display = "none";
+                noBtn.disabled = true;
+              }
+            }
 
-          card.appendChild(span);
-          setTimeout(() => {
-            span.remove();
-          }, 3400);
-        }
-      }
+            if (yesBtn) {
+              yesBtn.addEventListener("click", function () {
+                loadCelebrationGif();
+                if (card) card.classList.add("celebrating");
+                if (celebration) celebration.style.pointerEvents = "auto";
+                if (yesBtn) { yesBtn.disabled = true; yesBtn.style.opacity = "0.8"; }
+                if (noBtn) { noBtn.disabled = true; noBtn.style.opacity = "0.4"; }
+                startFireworkShow();
+                startHearts();
+              });
+            }
 
-      function launchFireworks() {
-        if (!fireworksCanvas || !fwCtx) return;
-        const bursts = 6;
-        const centerX = fireworksCanvas.width / 2;
-        const centerY = fireworksCanvas.height / 2.4;
+            function startFireworkShow() {
+              if (!fireworksCanvas || !fwCtx) return;
+              if (!fwAnimating) {
+                fwAnimating = true;
+                requestAnimationFrame(updateFireworks);
+              }
+              launchFireworks();
+              if (!fireworkSpawner) {
+                fireworkSpawner = setInterval(launchFireworks, 900);
+              }
+            }
 
-        for (let i = 0; i < bursts; i++) {
-          const angleOffset = Math.random() * Math.PI * 2;
-          const hue = 330 + Math.random() * 40; // pinks / purples
-          const particles = [];
-          const count = 40;
+            function startHearts() {
+              if (!card) return;
+              var hearts = ["💖", "💘", "❤️", "💕", "💝"];
+              function spawnHeart() {
+                var span = document.createElement("span");
+                span.className = "floating-heart";
+                span.textContent = hearts[Math.floor(Math.random() * hearts.length)];
+                var cardWidth = card.clientWidth || 320;
+                span.style.left = ((cardWidth * 0.2) / 2 + Math.random() * (cardWidth * 0.6)) + "px";
+                span.style.fontSize = (18 + Math.random() * 10) + "px";
+                card.appendChild(span);
+                setTimeout(function () {
+                  if (span.parentNode) span.parentNode.removeChild(span);
+                }, 3400);
+              }
+              spawnHeart();
+              if (!heartSpawner) heartSpawner = setInterval(spawnHeart, 850);
+            }
 
-          for (let j = 0; j < count; j++) {
-            const angle = (j / count) * Math.PI * 2 + angleOffset;
-            const speed = 2.2 + Math.random() * 3.3;
-            particles.push({
-              x: centerX,
-              y: centerY,
-              vx: Math.cos(angle) * speed,
-              vy: Math.sin(angle) * speed,
-              life: 0,
-              maxLife: 45 + Math.random() * 15,
-              hue,
-            });
+            function launchFireworks() {
+              if (!fireworksCanvas || !fwCtx) return;
+              var bursts = 6;
+              var centerX = fireworksCanvas.width / 2;
+              var centerY = fireworksCanvas.height / 2.4;
+              for (var i = 0; i < bursts; i++) {
+                var angleOffset = Math.random() * Math.PI * 2;
+                var hue = 330 + Math.random() * 40;
+                var particles = [];
+                var count = 40;
+                for (var j = 0; j < count; j++) {
+                  var angle = (j / count) * Math.PI * 2 + angleOffset;
+                  var speed = 2.2 + Math.random() * 3.3;
+                  particles.push({
+                    x: centerX,
+                    y: centerY,
+                    vx: Math.cos(angle) * speed,
+                    vy: Math.sin(angle) * speed,
+                    life: 0,
+                    maxLife: 45 + Math.random() * 15,
+                    hue: hue,
+                  });
+                }
+                fireworks.push({ particles: particles });
+              }
+            }
+
+            function updateFireworks() {
+              if (!fwCtx || !fireworksCanvas) return;
+              fwCtx.clearRect(0, 0, fireworksCanvas.width, fireworksCanvas.height);
+              for (var i = 0; i < fireworks.length; i++) {
+                var fw = fireworks[i];
+                for (var j = 0; j < fw.particles.length; j++) {
+                  var p = fw.particles[j];
+                  p.x += p.vx;
+                  p.y += p.vy;
+                  p.vy += 0.02;
+                  p.life++;
+                  var alpha = 1 - p.life / p.maxLife;
+                  if (alpha <= 0) continue;
+                  fwCtx.beginPath();
+                  fwCtx.arc(p.x, p.y, 2.3, 0, Math.PI * 2);
+                  fwCtx.fillStyle = "hsla(" + p.hue + ", 85%, 60%, " + alpha + ")";
+                  fwCtx.fill();
+                }
+                fw.particles = fw.particles.filter(function (p) { return p.life < p.maxLife; });
+              }
+              fireworks = fireworks.filter(function (fw) { return fw.particles.length > 0; });
+              if (fwAnimating) requestAnimationFrame(updateFireworks);
+            }
+          } catch (err) {
+            if (typeof console !== "undefined" && console.error) console.error(err);
           }
-
-          fireworks.push({ particles });
-        }
-
-      }
-
-      function updateFireworks() {
-        fwCtx.clearRect(0, 0, fireworksCanvas.width, fireworksCanvas.height);
-
-        fireworks.forEach((fw) => {
-          fw.particles.forEach((p) => {
-            p.x += p.vx;
-            p.y += p.vy;
-            p.vy += 0.02; // gentle gravity
-            p.life++;
-
-            const alpha = 1 - p.life / p.maxLife;
-            if (alpha <= 0) return;
-
-            fwCtx.beginPath();
-            fwCtx.arc(p.x, p.y, 2.3, 0, Math.PI * 2);
-            fwCtx.fillStyle = `hsla(${p.hue}, 85%, 60%, ${alpha})`;
-            fwCtx.fill();
-          });
-
-          fw.particles = fw.particles.filter((p) => p.life < p.maxLife);
         });
-
-        fireworks = fireworks.filter((fw) => fw.particles.length > 0);
-
-        // keep the loop running so new bursts keep animating
-        if (fwAnimating) {
-          requestAnimationFrame(updateFireworks);
-        }
-      }
+      })();
     </script>
   </body>
  </html>
