@@ -363,7 +363,8 @@
 
       <div class="celebration" id="celebration">
         <img
-          src="https://bzangygroink.co.uk/wp-content/uploads/2022/10/quby-dancing.gif"
+          id="celebrationGif"
+          data-src="https://bzangygroink.co.uk/wp-content/uploads/2022/10/quby-dancing.gif"
           alt="Cute dancing gif"
           class="celebration-gif"
         />
@@ -379,12 +380,31 @@
       const celebration = document.getElementById("celebration");
       const card = document.querySelector(".card");
       const celebrationText = document.getElementById("celebrationText");
+      const celebrationGif = document.getElementById("celebrationGif");
       const fireworksCanvas = document.getElementById("fireworksCanvas");
       const fwCtx = fireworksCanvas ? fireworksCanvas.getContext("2d") : null;
       const isTouchDevice =
         typeof window !== "undefined" &&
         window.matchMedia &&
         window.matchMedia("(pointer: coarse)").matches;
+
+      function loadCelebrationGif() {
+        if (!celebrationGif || celebrationGif.src) return;
+        const dataSrc = celebrationGif.getAttribute("data-src");
+        if (!dataSrc) return;
+        celebrationGif.onerror = function () {
+          celebrationGif.style.display = "none";
+          if (celebration) {
+            const fallback = document.createElement("p");
+            fallback.className = "celebration-gif";
+            fallback.style.fontSize = "4rem";
+            fallback.textContent = "💃❤️🎉";
+            fallback.setAttribute("aria-hidden", "true");
+            celebration.insertBefore(fallback, celebration.firstChild);
+          }
+        };
+        celebrationGif.src = dataSrc;
+      }
 
       function resizeCanvas() {
         if (!fireworksCanvas || !card) return;
@@ -406,20 +426,20 @@
       let mobileNoClicks = 0;
 
       function randomPosition() {
-        const maxOffsetX = buttonsRow.clientWidth / 2 - 40;
+        if (!buttonsRow) return { x: 0, y: 0 };
+        const maxOffsetX = Math.max(20, buttonsRow.clientWidth / 2 - 40);
         const maxOffsetY = 55;
-
         const angle = Math.random() * Math.PI * 2;
         const radius = 20 + Math.random() * Math.min(maxOffsetX, maxOffsetY);
-        const x = Math.cos(angle) * radius;
-        const y = Math.sin(angle) * radius;
-
-        return { x, y };
+        return {
+          x: Math.cos(angle) * radius,
+          y: Math.sin(angle) * radius,
+        };
       }
 
       function dodgeNoButton() {
+        if (!noBtn) return;
         moveCount++;
-
         const { x, y } = randomPosition();
 
         noBtn.style.position = "relative";
@@ -484,20 +504,17 @@
       }
 
       yesBtn.addEventListener("click", () => {
-        // Move other elements off and show dancing gif
+        loadCelebrationGif();
         card.classList.add("celebrating");
         celebration.style.pointerEvents = "auto";
         // "I knew it chakanyura" line animates via CSS
 
-        // Disable buttons after choosing "Yes"
         yesBtn.disabled = true;
         noBtn.disabled = true;
         yesBtn.style.opacity = "0.8";
         noBtn.style.opacity = "0.4";
 
-        // Fireworks celebration (canvas-based, no emojis)
         startFireworkShow();
-        // Floating heart emojis from the bottom
         startHearts();
       });
 
