@@ -1,0 +1,297 @@
+/* [project]/app/globals.css [app-client] (css) */
+:root {
+  --bg: #fff0f6;
+  --card-bg: #fff;
+  --accent: #ff4d6d;
+  --accent-dark: #c9184a;
+  --accent-soft: #ff8fa3;
+  --text-main: #2b283a;
+  --text-soft: #6b657d;
+  --yes: #37b24d;
+  --shadow-soft: 0 18px 40px #0000001f;
+}
+
+*, :before, :after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  min-height: 100vh;
+  color: var(--text-main);
+  background: radial-gradient(circle at 0 0, #ffe3e3, #fff0f6 40%, #fff);
+  justify-content: center;
+  align-items: center;
+  display: flex;
+}
+
+.sparkles {
+  pointer-events: none;
+  opacity: .6;
+  background-image: radial-gradient(circle at 10% 20%, #ffc0cb80 0, #0000 40%), radial-gradient(circle at 80% 10%, #ffb6c180 0, #0000 40%), radial-gradient(circle at 90% 80%, #ffe4e1b3 0, #0000 50%);
+  position: fixed;
+  inset: 0;
+}
+
+.card {
+  z-index: 1;
+  background: var(--card-bg);
+  width: min(420px, 100vw - 3rem);
+  box-shadow: var(--shadow-soft);
+  text-align: center;
+  border-radius: 24px;
+  padding: 32px 28px 26px;
+  position: relative;
+  overflow: hidden;
+}
+
+.card:before {
+  content: "";
+  opacity: .8;
+  z-index: -1;
+  background: radial-gradient(circle at 0 0, #ff8fa338, #0000 55%), radial-gradient(circle at 100% 0, #ffdcf0b3, #0000 55%);
+  position: absolute;
+  inset: -40%;
+}
+
+.hearts {
+  margin-bottom: 6px;
+  font-size: 40px;
+  animation: 2.8s ease-in-out infinite floatHearts;
+}
+
+@keyframes floatHearts {
+  0%, 100% {
+    transform: translateY(0);
+  }
+
+  50% {
+    transform: translateY(-8px);
+  }
+}
+
+.title {
+  letter-spacing: .03em;
+  color: var(--accent-dark);
+  text-shadow: 0 4px 18px #ff4d6d52;
+  margin-bottom: 8px;
+  font-size: 1.9rem;
+  font-weight: 800;
+}
+
+.subtitle {
+  color: var(--text-soft);
+  margin-bottom: 22px;
+  font-size: .98rem;
+}
+
+.buttons-row {
+  justify-content: center;
+  align-items: center;
+  gap: 16px;
+  min-height: 48px;
+  margin: 16px 0 4px;
+  display: flex;
+  position: relative;
+}
+
+button {
+  cursor: pointer;
+  font: inherit;
+  white-space: nowrap;
+  border: none;
+  border-radius: 999px;
+  outline: none;
+  padding: 10px 24px;
+  transition: box-shadow .2s, background .2s, color .2s, opacity .2s, transform .2s;
+}
+
+.btn-yes {
+  background: linear-gradient(135deg, var(--yes), #66d9a3);
+  color: #fff;
+  font-weight: 700;
+  box-shadow: 0 10px 25px #37b24d73;
+}
+
+.btn-yes:hover {
+  transform: translateY(-1px)scale(1.03);
+  box-shadow: 0 16px 35px #37b24d8c;
+}
+
+.btn-no {
+  color: var(--accent-dark);
+  background: #fff;
+  border: 1px solid #c9184a2e;
+  transition: transform 60ms ease-out, box-shadow .18s, opacity .2s;
+  position: relative;
+  box-shadow: 0 10px 22px #0000000f;
+}
+
+.btn-no:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 14px 26px #00000012;
+}
+
+.hint {
+  color: var(--text-soft);
+  opacity: .85;
+  margin-top: 6px;
+  font-size: .78rem;
+}
+
+#fireworksCanvas {
+  pointer-events: none;
+  z-index: 0;
+  width: 100%;
+  height: 100%;
+  position: absolute;
+  inset: 0;
+}
+
+.gift-wrapper {
+  justify-content: center;
+  align-items: center;
+  height: 120px;
+  margin-top: 24px;
+  display: flex;
+  position: relative;
+}
+
+.floating-heart {
+  pointer-events: none;
+  filter: drop-shadow(0 3px 6px #0003);
+  z-index: 2;
+  font-size: 20px;
+  animation: 3.2s ease-out forwards floatHeart;
+  position: absolute;
+  bottom: -20px;
+}
+
+@keyframes floatHeart {
+  0% {
+    opacity: 0;
+    transform: translateY(0)scale(.9);
+  }
+
+  10% {
+    opacity: 1;
+  }
+
+  60% {
+    opacity: .95;
+    transform: translateY(-120px)scale(1.03);
+  }
+
+  100% {
+    opacity: 0;
+    transform: translateY(-200px)scale(1.05);
+  }
+}
+
+.bottom-note {
+  color: var(--text-soft);
+  opacity: .8;
+  margin-top: 12px;
+  font-size: .7rem;
+}
+
+.celebration {
+  opacity: 0;
+  pointer-events: none;
+  justify-content: center;
+  align-items: center;
+  margin-top: 10px;
+  display: flex;
+  transform: translateY(16px)scale(.9);
+}
+
+.celebration-gif {
+  border-radius: 18px;
+  width: 100%;
+  max-width: 260px;
+  box-shadow: 0 22px 50px #00000059;
+}
+
+#celebrationText {
+  color: var(--accent-dark);
+  opacity: 0;
+  margin-top: 16px;
+  font-size: 1.05rem;
+  font-weight: 700;
+  transform: translateY(8px);
+}
+
+.card.celebrating #celebrationText {
+  animation: .6s ease-out .25s forwards messageFadeUp;
+}
+
+.card.celebrating .celebration {
+  animation: .6s cubic-bezier(.16, 1, .3, 1) forwards celebrationIn;
+}
+
+.card.celebrating .hearts, .card.celebrating .title, .card.celebrating .subtitle, .card.celebrating .buttons-row, .card.celebrating .hint, .card.celebrating .gift-wrapper, .card.celebrating .message, .card.celebrating .bottom-note.base-note {
+  animation: .55s ease-in forwards slideAway;
+}
+
+@keyframes celebrationIn {
+  0% {
+    opacity: 0;
+    transform: translateY(30px)scale(.7);
+  }
+
+  70% {
+    opacity: 1;
+    transform: translateY(-6px)scale(1.03);
+  }
+
+  100% {
+    opacity: 1;
+    transform: translateY(0)scale(1);
+  }
+}
+
+@keyframes slideAway {
+  0% {
+    opacity: 1;
+    transform: translateY(0)scale(1);
+  }
+
+  100% {
+    opacity: 0;
+    transform: translateY(40px)scale(.95);
+  }
+}
+
+@keyframes messageFadeUp {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (max-width: 480px) {
+  .card {
+    padding: 26px 20px 20px;
+  }
+
+  .title {
+    font-size: 1.6rem;
+  }
+
+  .buttons-row {
+    gap: 12px;
+  }
+
+  button {
+    padding: 9px 19px;
+    font-size: .94rem;
+  }
+}
+
+/*# sourceMappingURL=app_globals_css_bad6b30c._.single.css.map*/
